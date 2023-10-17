@@ -1,3 +1,19 @@
+libavif (0.11.1-3) unstable; urgency=medium
+
+  * debian/rules: Do not install man pages if they are not built.
+
+ -- Boyuan Yang <byang@debian.org>  Thu, 13 Jul 2023 09:54:12 -0400
+
+libavif (0.11.1-2) unstable; urgency=medium
+
+  * d/control,d/rules: Disable pandoc support on architectures
+    with broken pandoc: kfreebsd-*, m68k, powerpc, sh4, x32.
+  * debian/control: Bump Standards-Version to 4.6.2.
+  * debian/control: Migrate from old build-dep:
+    libgdk-pixbuf2.0-dev => libgdk-pixbuf-2.0-dev. (Closes: #1037383)
+
+ -- Boyuan Yang <byang@debian.org>  Thu, 13 Jul 2023 08:37:58 -0400
+
 libavif (0.11.1-1) unstable; urgency=medium
 
   * New upstream version 0.11.1.
