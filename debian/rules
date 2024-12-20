@@ -18,17 +18,8 @@ include /usr/share/dpkg/architecture.mk
 # sync with debian/control
 LIBGAV1_FLAG := -DAVIF_CODEC_LIBGAV1=OFF
 
-ifneq (,$(filter $(DEB_HOST_ARCH), amd64 arm64 armel armhf i386 mips64el mipsel ppc64el s390x hppa ppc64 riscv64 x32))
-  LIBGAV1_FLAG := -DAVIF_CODEC_LIBGAV1=ON
-endif
-
-
-# only enable SVT-AV1 on certain architectures
-# sync with debian/control
-SVT_FLAG := -DAVIF_CODEC_SVT=OFF
-
-ifneq (,$(filter $(DEB_HOST_ARCH), amd64 arm64 armel armhf mips64el mipsel ppc64el s390x hppa ia64 m68k powerpc ppc64 riscv64 sh4 sparc64))
-  SVT_FLAG := -DAVIF_CODEC_SVT=ON
+ifneq (,$(filter $(DEB_HOST_ARCH), amd64 arm64 armel armhf i386 mips64el mipsel ppc64el loong64 riscv64 x32))
+  LIBGAV1_FLAG := -DAVIF_CODEC_LIBGAV1=SYSTEM
 endif
 
 
@@ -36,8 +27,8 @@ endif
 # sync with debian/control
 RAV1E_FLAG := -DAVIF_CODEC_RAV1E=OFF
 
-ifneq (,$(filter $(DEB_HOST_ARCH), amd64 arm64 armel armhf i386 mips64el mipsel ppc64el s390x powerpc ppc64))
-  RAV1E_FLAG := -DAVIF_CODEC_RAV1E=ON
+ifneq (,$(filter $(DEB_HOST_ARCH), amd64 arm64 armel armhf i386 mips64el mipsel ppc64el s390x powerpc ppc64 riscv64))
+  RAV1E_FLAG := -DAVIF_CODEC_RAV1E=SYSTEM
 endif
 
 
@@ -49,7 +40,7 @@ else
 endif
 
 # disable doc build on architecture with broken pandoc, see also d/control
-ifneq (,$(filter $(DEB_HOST_ARCH), kfreebsd-amd64 kfreebsd-i386 m68k powerpc sh4 x32))
+ifneq (,$(filter $(DEB_HOST_ARCH), kfreebsd-amd64 kfreebsd-i386 m68k powerpc sh4 x32 hppa hurd-i386 loong64 sparc64))
   MAN_PAGES_FLAG := -DAVIF_BUILD_MAN_PAGES=OFF
 endif
 
@@ -57,15 +48,20 @@ endif
 %:
 	dh $@
 
+execute_before_dh_auto_configure:
+	# Strip embedded libyuv source code, we prefer library from OS
+	rm -rfv third_party/libyuv/
+
 # rpath: check https://bugs.debian.org/1003371
 #        drop when debhelper-compat >= 14
 override_dh_auto_configure:
 	dh_auto_configure -- \
+	    -DAVIF_LIBYUV=SYSTEM \
 	    -DAVIF_BUILD_APPS=ON \
-	    -DAVIF_CODEC_DAV1D=ON \
-	    -DAVIF_CODEC_AOM=ON \
+	    -DAVIF_CODEC_DAV1D=SYSTEM \
+	    -DAVIF_CODEC_AOM=SYSTEM \
+	    -DAVIF_CODEC_SVT=SYSTEM \
 	    $(LIBGAV1_FLAG) \
-	    $(SVT_FLAG) \
 	    $(RAV1E_FLAG) \
 	    -DAVIF_BUILD_GDK_PIXBUF=ON \
 	    -DCMAKE_BUILD_RPATH_USE_ORIGIN=ON \
@@ -77,10 +73,16 @@ override_dh_auto_configure:
 execute_after_dh_install:
 ifeq (,$(filter nodoc,$(DEB_BUILD_OPTIONS)))
 ifeq ($(MAN_PAGES_FLAG),-DAVIF_BUILD_MAN_PAGES=ON)
+	# Install fresh built man pages to libavif-bin package
 	install -d $(CURDIR)/debian/libavif-bin/usr/share/man/man1/
 	install -m644 debian/tmp/usr/share/man/man1/avifdec.1 debian/libavif-bin/usr/share/man/man1/
 	install -m644 debian/tmp/usr/share/man/man1/avifenc.1 debian/libavif-bin/usr/share/man/man1/
 	rm -f debian/tmp/usr/share/man/man1/avifdec.1
 	rm -f debian/tmp/usr/share/man/man1/avifenc.1
+else
+	# Fallback when man pages needed but unable to build, use prebuilt man pages (may be outdated)
+	install -d $(CURDIR)/debian/libavif-bin/usr/share/man/man1/
+	install -m644 debian/avifdec.1 debian/libavif-bin/usr/share/man/man1/
+	install -m644 debian/avifenc.1 debian/libavif-bin/usr/share/man/man1/
 endif
 endif

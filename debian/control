@@ -11,20 +11,20 @@ Build-Depends:
  libcjson-dev,
  libdav1d-dev,
 # only enable when libgav1-dev exist, see rules file
- libgav1-dev [amd64 arm64 armel armhf i386 mips64el mipsel ppc64el s390x hppa ppc64 riscv64 x32],
+ libgav1-dev [amd64 arm64 armel armhf i386 mips64el mipsel ppc64el riscv64 loong64 x32],
  libgdk-pixbuf-2.0-dev,
  libjpeg-dev,
  libpng-dev,
 # only enable when librav1e-dev exist, see rules file
- librav1e-dev [amd64 arm64 armel armhf i386 mips64el mipsel ppc64el s390x powerpc ppc64],
-# only enable when libsvtav1enc-dev exist, see rules file
- libsvtav1enc-dev [amd64 arm64 armel armhf mips64el mipsel ppc64el s390x hppa ia64 m68k powerpc ppc64 riscv64 sh4 sparc64],
+ librav1e-dev [amd64 arm64 armel armhf i386 mips64el mipsel ppc64el s390x powerpc ppc64 riscv64 loong64],
+ libsharpyuv-dev,
+ libsvtav1enc-dev,
  libyuv-dev,
-# Disable doc build on arch with broken pandoc: kfreebsd-*, m68k, powerpc, sh4, x32
- pandoc [!kfreebsd-amd64 !kfreebsd-i386 !m68k !powerpc !sh4 !x32] <!nodoc>,
- pkg-config,
+# Disable doc build on arch with broken pandoc: kfreebsd-*, m68k, powerpc, sh4, x32, hppa, hurd-i386, loong64, sparc64
+ pandoc [!kfreebsd-amd64 !kfreebsd-i386 !m68k !powerpc !sh4 !x32 !hppa !hurd-i386 !loong64 !sparc64] <!nodoc>,
+ pkgconf,
  zlib1g-dev,
-Standards-Version: 4.6.2
+Standards-Version: 4.7.0
 Rules-Requires-Root: no
 Homepage: https://github.com/AOMediaCodec/libavif
 Vcs-Git: https://salsa.debian.org/multimedia-team/libavif.git
@@ -34,7 +34,7 @@ Package: libavif-bin
 Section: utils
 Architecture: any
 Depends:
- libavif15 (= ${binary:Version}),
+ libavif16 (= ${binary:Version}),
  ${misc:Depends},
  ${shlibs:Depends},
 Description: Library for handling .avif files (utilities)
@@ -50,7 +50,13 @@ Section: libdevel
 Architecture: any
 Multi-Arch: same
 Depends:
- libavif15 (= ${binary:Version}),
+# Manually maintained binary build-dependency as recorded in .pc file
+ libaom-dev (>= 3~),
+ libdav1d-dev,
+ librav1e-dev [amd64 arm64 armel armhf i386 mips64el mipsel ppc64el s390x powerpc ppc64 riscv64 loong64],
+ libsvtav1enc-dev,
+ libyuv-dev,
+ libavif16 (= ${binary:Version}),
  ${misc:Depends},
 Description: Library for handling .avif files (development files)
  This library aims to be a friendly, portable C implementation of the AV1
@@ -58,7 +64,7 @@ Description: Library for handling .avif files (development files)
  .
  This package provides the development files.
 
-Package: libavif15
+Package: libavif16
 Architecture: any
 Multi-Arch: same
 Depends:
@@ -74,7 +80,7 @@ Package: libavif-gdk-pixbuf
 Architecture: any
 Multi-Arch: same
 Depends:
- libavif15 (= ${binary:Version}),
+ libavif16 (= ${binary:Version}),
  ${misc:Depends},
  ${shlibs:Depends},
 Breaks:
